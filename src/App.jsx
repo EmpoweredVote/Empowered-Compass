@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import "./App.css";
 import TopicSelector from "./TopicSelector";
 import QuizTemplate from "./QuizTemplate";
+import ResultsPage from "./ResultsPage";
 
 function App() {
   const [topics, setTopics] = useState({});
@@ -46,8 +47,13 @@ function App() {
         </div>
       )}
       {currentPage === "quiz" && (
-        <QuizTemplate selectedTopics={selectedTopics} data={topics} />
+        <QuizTemplate
+          selectedTopics={selectedTopics}
+          data={topics}
+          onComplete={() => setCurrentPage("results")}
+        />
       )}
+      {currentPage === "results" && <ResultsPage data={topics} />}
     </div>
   );
 }

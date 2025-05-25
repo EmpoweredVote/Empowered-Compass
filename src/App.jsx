@@ -3,6 +3,7 @@ import "./App.css";
 import TopicSelector from "./TopicSelector";
 import QuizTemplate from "./QuizTemplate";
 import ResultsPage from "./ResultsPage";
+import { SpiderGraph } from "./SpiderGraph";
 
 function App() {
   const [topics, setTopics] = useState({});
@@ -55,7 +56,10 @@ function App() {
         />
       )}
       {currentPage === "results" && (
-        <ResultsPage data={topics} onReset={handleResetQuiz} />
+        <div>
+          <SpiderGraph data={topics} />
+          <ResultsPage data={topics} onReset={handleResetQuiz} />
+        </div>
       )}
     </div>
   );

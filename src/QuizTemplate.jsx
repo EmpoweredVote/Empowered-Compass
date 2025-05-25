@@ -37,29 +37,33 @@ function QuizTemplate({ selectedTopics, data, onComplete }) {
       </div>
 
       <div className="flex-1 px-4 py-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {Object.entries(stances).map(([stanceNumber, stanceText]) => {
-          const isSelected = selectedStance === stanceNumber;
+        {/* Filter out non-numbers ("ShortTitle" in our JSON) */}
+        {Object.entries(stances)
+          .filter(([key]) => !isNaN(key))
+          .map(([stanceNumber, stanceText]) => {
+            const isSelected = selectedStance === stanceNumber;
 
-          return (
-            <button
-              key={stanceNumber}
-              onClick={() =>
-                setAnswers((prev) => ({
-                  ...prev,
-                  [currentTopic]: stanceNumber,
-                }))
-              }
-              className={`w-full text-left border rounded-lg px-4 py-3 transition text-sm
+            return (
+              <button
+                key={stanceNumber}
+                onClick={() =>
+                  setAnswers((prev) => ({
+                    ...prev,
+                    [currentTopic]: stanceNumber,
+                  }))
+                }
+                className={`w-full text-left border rounded-lg px-4 py-3 transition text-sm
                 ${
                   isSelected
                     ? "bg-green-500 text-white hover:bg-green-600"
                     : "bg-white text-gray-800 hover:bg-gray-100"
                 }`}
-            >
-              <span className="font-medium">{stanceNumber}.</span> {stanceText}
-            </button>
-          );
-        })}
+              >
+                <span className="font-medium">{stanceNumber}.</span>{" "}
+                {stanceText}
+              </button>
+            );
+          })}
       </div>
 
       <div className="flex-none p-4 border-t bg-white flex gap-4">

@@ -49,41 +49,59 @@ const options = {
 };
 
 export function SpiderGraph({ data }) {
-  const [chartData, setChartData] = useState(null);
+  const [labels, setLabels] = useState([]);
+  const [values, setValues] = useState([]);
+  const [showInverted, setShowInverted] = useState(false);
 
   useEffect(() => {
     const savedAnswers = JSON.parse(localStorage.getItem("quizAnswers"));
-    if (!savedAnswers) return;
+    if (!savedAnswers || !data) return;
 
-    const labels = [];
-    const values = [];
+    const newLabels = [];
+    const newValues = [];
 
     Object.entries(savedAnswers).forEach(([topic, stanceNum]) => {
       const short = data?.[topic]?.shortTitle || topic;
-      labels.push(short);
-      values.push(parseInt(stanceNum));
+      newLabels.push(short);
+      newValues.push(parseInt(stanceNum));
     });
 
-    setChartData({
-      labels,
-      datasets: [
-        {
-          label: "Your Stance",
-          data: values,
-          backgroundColor: "rgba(59, 130, 246, 0.2)",
-          borderColor: "rgba(59, 130, 246, 1)",
-          borderWidth: 2,
-          pointBackgroundColor: "rgba(59, 130, 246, 1)",
-        },
-      ],
-    });
-  }, []);
+    setLabels(newLabels);
+    setValues(newValues);
+  }, [data]);
 
-  if (!chartData) return null;
+  const currentValues = showInverted ? values.map((v) => 11 - v) : values;
+
+  const chartData = {
+    labels,
+    datasets: [
+      {
+        label: showInverted ? "Inverted Stance" : "Your Stance",
+        data: currentValues,
+        backgroundColor: "rgba(59, 130, 246, 0.2)",
+        borderColor: "rgba(59, 130, 246, 1)",
+        borderWidth: 2,
+        pointBackgroundColor: "rgba(59, 130, 246, 1)",
+      },
+    ],
+  };
+
+  if (!values.length) return null;
 
   return (
-    <div className="w-full h-[400px] sm:h-[500px] md:h-[600px] p-4 my-8">
-      <Radar data={chartData} options={options} />
+    <div className="w-full p-4 my-8">
+      <div className="flex justify-end mb-4">
+        <button
+          onClick={() => setShowInverted((prev) => !prev)}
+          className="px-4 py-2 text-sm font-medium rounded bg-blue-600 text-white hover:bg-blue-700 transition"
+        >
+          {showInverted ? "Show Original" : "Invert Graph"}
+        </button>
+      </div>
+
+      <div className="h-[400px] sm:h-[500px] md:h-[600px]">
+        <Radar data={chartData} options={options} />
+      </div>
     </div>
   );
 }

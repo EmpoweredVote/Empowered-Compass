@@ -11,7 +11,7 @@ function App() {
   const [currentPage, setCurrentPage] = useState("select");
 
   useEffect(() => {
-    fetch("/data.json")
+    fetch(`${import.meta.env.BASE_URL}data.json`)
       .then((res) => res.json())
       .then((data) => {
         console.log(data);

@@ -2,6 +2,11 @@ import { useState, useEffect } from "react";
 
 function TopicSelector({ topics, onSelect, selectedTopics, onContinue }) {
   const isAtLimit = selectedTopics.length >= 8;
+  const [search, setSearch] = useState("");
+
+  const filteredTopics = Object.keys(topics).filter((topic) =>
+    topic.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <div className="flex flex-col h-screen">
@@ -18,11 +23,18 @@ function TopicSelector({ topics, onSelect, selectedTopics, onContinue }) {
             style={{ width: `${(selectedTopics.length / 8) * 100}%` }}
           />
         </div>
+        <input
+          type="text"
+          placeholder="Search topics..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring focus:border-blue-300 my-4"
+        />
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-2">
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {Object.keys(topics).map((topic) => {
+          {filteredTopics.map((topic) => {
             const isSelected = selectedTopics.includes(topic);
             const isDisabled = isAtLimit && !isSelected;
 

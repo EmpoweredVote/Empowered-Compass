@@ -29,6 +29,12 @@ function App() {
     });
   };
 
+  const handleResetQuiz = () => {
+    localStorage.removeItem("quizAnswers");
+    setSelectedTopics([]);
+    setCurrentPage("select");
+  };
+
   return (
     <div>
       {currentPage === "select" && (
@@ -39,11 +45,6 @@ function App() {
             selectedTopics={selectedTopics}
             onContinue={() => setCurrentPage("quiz")}
           />
-          <ul>
-            {selectedTopics.map((topic) => (
-              <li key={topic}>{topic}</li>
-            ))}
-          </ul>
         </div>
       )}
       {currentPage === "quiz" && (
@@ -53,7 +54,9 @@ function App() {
           onComplete={() => setCurrentPage("results")}
         />
       )}
-      {currentPage === "results" && <ResultsPage data={topics} />}
+      {currentPage === "results" && (
+        <ResultsPage data={topics} onReset={handleResetQuiz} />
+      )}
     </div>
   );
 }

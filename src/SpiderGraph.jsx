@@ -19,35 +19,6 @@ ChartJS.register(
   Legend
 );
 
-const options = {
-  scales: {
-    r: {
-      suggestedMin: 1,
-      suggestedMax: 10,
-      ticks: {
-        stepSize: 1,
-        color: "#4B5563",
-      },
-      grid: {
-        color: "#E5E7EB",
-      },
-      pointLabels: {
-        font: {
-          size: 14,
-        },
-        color: "#374151",
-      },
-    },
-  },
-  plugins: {
-    legend: {
-      display: false,
-    },
-  },
-  responsive: true,
-  maintainAspectRatio: false,
-};
-
 export function SpiderGraph({ data }) {
   const [labels, setLabels] = useState([]);
   const [values, setValues] = useState([]);
@@ -70,20 +41,48 @@ export function SpiderGraph({ data }) {
     setValues(newValues);
   }, [data]);
 
-  const currentValues = showInverted ? values.map((v) => 11 - v) : values;
-
   const chartData = {
     labels,
     datasets: [
       {
-        label: showInverted ? "Inverted Stance" : "Your Stance",
-        data: currentValues,
+        label: showInverted ? "Inverted Axis" : "Your Stance",
+        data: values,
         backgroundColor: "rgba(59, 130, 246, 0.2)",
         borderColor: "rgba(59, 130, 246, 1)",
         borderWidth: 2,
         pointBackgroundColor: "rgba(59, 130, 246, 1)",
       },
     ],
+  };
+
+  const chartOptions = {
+    scales: {
+      r: {
+        min: showInverted ? 10 : 0,
+        max: showInverted ? 0 : 10,
+        reverse: showInverted,
+        ticks: {
+          stepSize: 1,
+          color: "#4B5563",
+        },
+        grid: {
+          color: "#E5E7EB",
+        },
+        pointLabels: {
+          font: {
+            size: 14,
+          },
+          color: "#374151",
+        },
+      },
+    },
+    plugins: {
+      legend: {
+        display: false,
+      },
+    },
+    responsive: true,
+    maintainAspectRatio: false,
   };
 
   if (!values.length) return null;
@@ -95,12 +94,12 @@ export function SpiderGraph({ data }) {
           onClick={() => setShowInverted((prev) => !prev)}
           className="px-4 py-2 text-sm font-medium rounded bg-blue-600 text-white hover:bg-blue-700 transition"
         >
-          {showInverted ? "Show Original" : "Invert Graph"}
+          {showInverted ? "Show Original Axis" : "Invert Axis"}
         </button>
       </div>
 
       <div className="h-[400px] sm:h-[500px] md:h-[600px]">
-        <Radar data={chartData} options={options} />
+        <Radar data={chartData} options={chartOptions} />
       </div>
     </div>
   );

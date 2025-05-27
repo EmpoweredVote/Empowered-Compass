@@ -58,8 +58,8 @@ export function SpiderGraph({ data }) {
   const chartOptions = {
     scales: {
       r: {
-        min: showInverted ? 10 : 0,
-        max: showInverted ? 0 : 10,
+        min: 0,
+        max: 10,
         reverse: showInverted,
         ticks: {
           stepSize: 1,

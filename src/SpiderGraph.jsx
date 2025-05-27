@@ -22,7 +22,7 @@ ChartJS.register(
 export function SpiderGraph({ data }) {
   const [labels, setLabels] = useState([]);
   const [values, setValues] = useState([]);
-  const [showInverted, setShowInverted] = useState(false);
+  const [invertedSpokes, setInvertedSpokes] = useState({});
 
   useEffect(() => {
     const savedAnswers = JSON.parse(localStorage.getItem("quizAnswers"));
@@ -39,14 +39,34 @@ export function SpiderGraph({ data }) {
 
     setLabels(newLabels);
     setValues(newValues);
+
+    // Initialize inversion map if not already set
+    setInvertedSpokes((prev) => {
+      const newMap = {};
+      newLabels.forEach((label) => {
+        newMap[label] = prev[label] || false;
+      });
+      return newMap;
+    });
   }, [data]);
+
+  const toggleInversion = (label) => {
+    setInvertedSpokes((prev) => ({
+      ...prev,
+      [label]: !prev[label],
+    }));
+  };
+
+  const adjustedValues = values.map((val, index) =>
+    invertedSpokes[labels[index]] ? 11 - val : val
+  );
 
   const chartData = {
     labels,
     datasets: [
       {
-        label: showInverted ? "Inverted Axis" : "Your Stance",
-        data: values,
+        label: "Your Stance",
+        data: adjustedValues,
         backgroundColor: "rgba(59, 130, 246, 0.2)",
         borderColor: "rgba(59, 130, 246, 1)",
         borderWidth: 2,
@@ -60,10 +80,8 @@ export function SpiderGraph({ data }) {
       r: {
         min: 0,
         max: 10,
-        reverse: showInverted,
         ticks: {
-          stepSize: 1,
-          color: "#4B5563",
+          display: false, // hide numeric tick labels
         },
         grid: {
           color: "#E5E7EB",
@@ -80,6 +98,17 @@ export function SpiderGraph({ data }) {
       legend: {
         display: false,
       },
+      tooltip: {
+        callbacks: {
+          label: (ctx) => {
+            const original = values[ctx.dataIndex];
+            const isInverted = invertedSpokes[labels[ctx.dataIndex]];
+            return `${labels[ctx.dataIndex]}: ${
+              isInverted ? 11 - original : original
+            } (${isInverted ? "Inverted" : "Normal"})`;
+          },
+        },
+      },
     },
     responsive: true,
     maintainAspectRatio: false,
@@ -89,13 +118,20 @@ export function SpiderGraph({ data }) {
 
   return (
     <div className="w-full p-4 my-8">
-      <div className="flex justify-end mb-4">
-        <button
-          onClick={() => setShowInverted((prev) => !prev)}
-          className="px-4 py-2 text-sm font-medium rounded bg-blue-600 text-white hover:bg-blue-700 transition"
-        >
-          {showInverted ? "Show Original Axis" : "Invert Axis"}
-        </button>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4">
+        {labels.map((label) => (
+          <button
+            key={label}
+            onClick={() => toggleInversion(label)}
+            className={`px-3 py-2 text-xs rounded font-medium transition ${
+              invertedSpokes[label]
+                ? "bg-red-500 text-white hover:bg-red-600"
+                : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+            }`}
+          >
+            {label}: {invertedSpokes[label] ? "Inverted" : "Normal"}
+          </button>
+        ))}
       </div>
 
       <div className="h-[400px] sm:h-[500px] md:h-[600px]">

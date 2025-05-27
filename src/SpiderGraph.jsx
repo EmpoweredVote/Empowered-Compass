@@ -19,6 +19,27 @@ ChartJS.register(
   Legend
 );
 
+/**
+ * COMPONENT: SpiderGraph
+ *
+ * PURPOSE:
+ * Renders a radar chart ("spider graph") showing quiz answers for each selected topic.
+ * Includes a button to invert the axis direction of the chart.
+ *
+ * PROPS:
+ * - data: object — full data.json mapping (including shortTitles for labels)
+ *
+ * LOCAL STATE:
+ * - labels: array — chart labels (short titles for each selected topic)
+ * - values: array — stance numbers (1–10) for each topic
+ * - showInverted: boolean — whether the radial axis is flipped (min/max reversed)
+ *
+ * LOGIC NOTES:
+ * - Pulls stance data from localStorage["quizAnswers"]
+ * - Uses Chart.js + react-chartjs-2 to render a responsive radar chart
+ * - Toggling `showInverted` reverses the axis orientation for all spokes
+ */
+
 export function SpiderGraph({ data }) {
   const [labels, setLabels] = useState([]);
   const [values, setValues] = useState([]);

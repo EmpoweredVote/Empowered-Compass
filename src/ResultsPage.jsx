@@ -1,3 +1,23 @@
+/**
+ * COMPONENT: ResultsPage
+ *
+ * PURPOSE:
+ * Displays the user's selected stances after completing the quiz.
+ * Pulls data from localStorage and topic data for display.
+ *
+ * PROPS:
+ * - data: object — full data.json mapping (with shortTitles)
+ * - onReset: function — resets app state to allow user to retake the quiz
+ *
+ * LOGIC NOTES:
+ * - Reads 'quizAnswers' from localStorage to show selected stance for each topic
+ * - Maps stance number to its corresponding text explanation using provided data
+ *
+ * RELATED FILES:
+ * - QuizTemplate.jsx → saves data to localStorage used here
+ * - SpiderGraph.jsx → visualizes the same data in graph format
+ */
+
 function ResultsPage({ data, onReset }) {
   const savedAnswers = JSON.parse(localStorage.getItem("quizAnswers"));
 

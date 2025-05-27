@@ -1,5 +1,23 @@
 import { useState, useEffect } from "react";
 
+/**
+ * COMPONENT: TopicSelector
+ *
+ * PURPOSE:
+ * Allows users to select up to 8 topics from a grid of "Topic Buttons".
+ * Selected topics are stored and used to generate the quiz.
+ *
+ * PROPS:
+ * - topics: object — full JSON map of all available topics
+ * - selectedTopics: array — currently selected topic keys
+ * - onSelect: function — triggered when a topic is clicked (See handleSelectTopic in App.jsx)
+ * - onContinue: function — called when 8 topics are selected and user hits "Continue"
+ *
+ * RELATED FILES:
+ * - QuizTemplate.jsx: consumes selected topics
+ * - data.json: provides the topic list
+ */
+
 function TopicSelector({ topics, onSelect, selectedTopics, onContinue }) {
   const isAtLimit = selectedTopics.length >= 8;
   const [search, setSearch] = useState("");
@@ -10,6 +28,7 @@ function TopicSelector({ topics, onSelect, selectedTopics, onContinue }) {
 
   return (
     <div className="flex flex-col h-screen">
+      {/* Progress & Search bar */}
       <div className="flex-none p-4">
         <h1 className="text-3xl font-bold text-center text-gray-800 mb-4">
           Select 8 Topics
@@ -31,7 +50,7 @@ function TopicSelector({ topics, onSelect, selectedTopics, onContinue }) {
           className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring focus:border-blue-300 my-4"
         />
       </div>
-
+      {/* Topic Button Grid */}
       <div className="flex-1 overflow-y-auto px-4 py-2">
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {filteredTopics.map((topic) => {

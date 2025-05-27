@@ -1,5 +1,30 @@
 import { useEffect, useState } from "react";
 
+/**
+ * COMPONENT: QuizTemplate
+ *
+ * PURPOSE:
+ * Displays a stance selection screen for each of the 8 selected topics.
+ * Users select one stance per topic. Answers are saved locally.
+ *
+ * PROPS:
+ * - selectedTopics: array — list of 8 user selected topics
+ * - data: object — full data.json mapping
+ * - onComplete: function — called when the final question is answered. (See setCurrentPage in App.jsx)
+ *
+ * LOCAL STATE:
+ * - currentIndex (number): which question the user is currently on (0–7)
+ * - answers (object): selected topic : answer number
+ *
+ * LOGIC NOTES:
+ * - Filters out non-numeric keys (like "shortTitle") when rendering stances from data.json
+ * - Stores user answers in localStorage["quizAnswers"] on completion
+ *
+ * RELATED FILES:
+ * - TopicSelector.jsx → selects the topics passed to this component
+ * - SpiderGraph.jsx → reads from localStorage to visualize quizAnswers
+ */
+
 function QuizTemplate({ selectedTopics, data, onComplete }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState({});

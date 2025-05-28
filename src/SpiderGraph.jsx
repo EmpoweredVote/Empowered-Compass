@@ -8,7 +8,9 @@ import {
   Legend,
 } from "chart.js";
 import { Radar } from "react-chartjs-2";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
+import { useQuizChartData } from "./useQuizChartData";
+import { createLabelClickPlugin } from "./labelClickPlugin";
 
 ChartJS.register(
   RadialLinearScale,
@@ -19,47 +21,33 @@ ChartJS.register(
   Legend
 );
 
+/**
+ * COMPONENT: SpiderGraph
+ *
+ * PURPOSE:
+ * Renders a radar chart ("spider graph") showing quiz answers for each selected topic.
+ *
+ * PROPS:
+ * - data: object — full data.json mapping (including shortTitles for labels)
+ *
+ * LOCAL STATE:
+ * - labels: array — chart labels (short titles for each selected topic)
+ * - values: array — stance numbers (1–10) for each topic
+ * - showInverted: boolean — whether the radial axis is flipped (min/max reversed)
+ *
+ * LOGIC NOTES:
+ * - Calls useQuizChartData() and passes mapped data.json object
+ * - useQuizChartData() returns everything we need to render the radar chart.
+ * - Uses Chart.js + react-chartjs-2 to render the responsive radar chart
+ * - We use a custom chart.js plugin to turn labels into invert buttons
+ */
+
 export function SpiderGraph({ data }) {
-  const [labels, setLabels] = useState([]);
-  const [values, setValues] = useState([]);
-  const [invertedSpokes, setInvertedSpokes] = useState({});
+  const chartRef = useRef(null);
+  // const [forceRerender, setForceRerender] = useState(false);
 
-  useEffect(() => {
-    const savedAnswers = JSON.parse(localStorage.getItem("quizAnswers"));
-    if (!savedAnswers || !data) return;
-
-    const newLabels = [];
-    const newValues = [];
-
-    Object.entries(savedAnswers).forEach(([topic, stanceNum]) => {
-      const short = data?.[topic]?.shortTitle || topic;
-      newLabels.push(short);
-      newValues.push(parseInt(stanceNum));
-    });
-
-    setLabels(newLabels);
-    setValues(newValues);
-
-    // Initialize inversion map if not already set
-    setInvertedSpokes((prev) => {
-      const newMap = {};
-      newLabels.forEach((label) => {
-        newMap[label] = prev[label] || false;
-      });
-      return newMap;
-    });
-  }, [data]);
-
-  const toggleInversion = (label) => {
-    setInvertedSpokes((prev) => ({
-      ...prev,
-      [label]: !prev[label],
-    }));
-  };
-
-  const adjustedValues = values.map((val, index) =>
-    invertedSpokes[labels[index]] ? 11 - val : val
-  );
+  const { labels, values, adjustedValues, invertedSpokes, toggleInversion } =
+    useQuizChartData(data);
 
   const chartData = {
     labels,
@@ -74,38 +62,30 @@ export function SpiderGraph({ data }) {
       },
     ],
   };
-
   const chartOptions = {
     scales: {
       r: {
         min: 0,
         max: 10,
-        ticks: {
-          display: false, // hide numeric tick labels
-        },
-        grid: {
-          color: "#E5E7EB",
-        },
+        ticks: { display: false },
+        grid: { color: "#E5E7EB" },
         pointLabels: {
-          font: {
-            size: 14,
-          },
+          font: { size: 14 },
           color: "#374151",
         },
       },
     },
     plugins: {
-      legend: {
-        display: false,
-      },
+      legend: { display: false },
       tooltip: {
         callbacks: {
           label: (ctx) => {
+            const label = labels[ctx.dataIndex];
             const original = values[ctx.dataIndex];
-            const isInverted = invertedSpokes[labels[ctx.dataIndex]];
-            return `${labels[ctx.dataIndex]}: ${
-              isInverted ? 11 - original : original
-            } (${isInverted ? "Inverted" : "Normal"})`;
+            const isInverted = invertedSpokes[label];
+            return `${label}: ${original} (${
+              isInverted ? "Inverted" : "Normal"
+            })`;
           },
         },
       },
@@ -114,28 +94,24 @@ export function SpiderGraph({ data }) {
     maintainAspectRatio: false,
   };
 
+  const clickPlugin = useMemo(
+    () => createLabelClickPlugin(labels, invertedSpokes, toggleInversion),
+    [labels, invertedSpokes, toggleInversion]
+  );
+
   if (!values.length) return null;
 
   return (
     <div className="w-full p-4 my-8">
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4">
-        {labels.map((label) => (
-          <button
-            key={label}
-            onClick={() => toggleInversion(label)}
-            className={`px-3 py-2 text-xs rounded font-medium transition ${
-              invertedSpokes[label]
-                ? "bg-red-500 text-white hover:bg-red-600"
-                : "bg-gray-200 text-gray-800 hover:bg-gray-300"
-            }`}
-          >
-            {label}: {invertedSpokes[label] ? "Inverted" : "Normal"}
-          </button>
-        ))}
-      </div>
-
-      <div className="h-[400px] sm:h-[500px] md:h-[600px]">
-        <Radar data={chartData} options={chartOptions} />
+      {/* <button onClick={() => setForceRerender((r) => !r)}>Rerender</button> */}
+      <div className="h-[400px] sm:h-[500px] md:h-[600px] relative">
+        <Radar
+          // key={forceRerender ? "on" : "off"}
+          ref={chartRef}
+          data={chartData}
+          options={chartOptions}
+          plugins={[clickPlugin]}
+        />
       </div>
     </div>
   );

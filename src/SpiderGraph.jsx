@@ -8,7 +8,9 @@ import {
   Legend,
 } from "chart.js";
 import { Radar } from "react-chartjs-2";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
+import { useQuizChartData } from "./useQuizChartData";
+import { createLabelClickPlugin } from "./labelClickPlugin";
 
 ChartJS.register(
   RadialLinearScale,
@@ -24,7 +26,6 @@ ChartJS.register(
  *
  * PURPOSE:
  * Renders a radar chart ("spider graph") showing quiz answers for each selected topic.
- * Includes a button to invert the axis direction of the chart.
  *
  * PROPS:
  * - data: object — full data.json mapping (including shortTitles for labels)
@@ -35,39 +36,25 @@ ChartJS.register(
  * - showInverted: boolean — whether the radial axis is flipped (min/max reversed)
  *
  * LOGIC NOTES:
- * - Pulls stance data from localStorage["quizAnswers"]
- * - Uses Chart.js + react-chartjs-2 to render a responsive radar chart
- * - Toggling `showInverted` reverses the axis orientation for all spokes
+ * - Calls useQuizChartData() and passes mapped data.json object
+ * - useQuizChartData() returns everything we need to render the radar chart.
+ * - Uses Chart.js + react-chartjs-2 to render the responsive radar chart
+ * - We use a custom chart.js plugin to turn labels into invert buttons
  */
 
 export function SpiderGraph({ data }) {
-  const [labels, setLabels] = useState([]);
-  const [values, setValues] = useState([]);
-  const [showInverted, setShowInverted] = useState(false);
+  const chartRef = useRef(null);
+  // const [forceRerender, setForceRerender] = useState(false);
 
-  useEffect(() => {
-    const savedAnswers = JSON.parse(localStorage.getItem("quizAnswers"));
-    if (!savedAnswers || !data) return;
-
-    const newLabels = [];
-    const newValues = [];
-
-    Object.entries(savedAnswers).forEach(([topic, stanceNum]) => {
-      const short = data?.[topic]?.shortTitle || topic;
-      newLabels.push(short);
-      newValues.push(parseInt(stanceNum));
-    });
-
-    setLabels(newLabels);
-    setValues(newValues);
-  }, [data]);
+  const { labels, values, adjustedValues, invertedSpokes, toggleInversion } =
+    useQuizChartData(data);
 
   const chartData = {
     labels,
     datasets: [
       {
-        label: showInverted ? "Inverted Axis" : "Your Stance",
-        data: values,
+        label: "Your Stance",
+        data: adjustedValues,
         backgroundColor: "rgba(59, 130, 246, 0.2)",
         borderColor: "rgba(59, 130, 246, 1)",
         borderWidth: 2,
@@ -75,52 +62,56 @@ export function SpiderGraph({ data }) {
       },
     ],
   };
-
   const chartOptions = {
     scales: {
       r: {
         min: 0,
         max: 10,
-        reverse: showInverted,
-        ticks: {
-          stepSize: 1,
-          color: "#4B5563",
-        },
-        grid: {
-          color: "#E5E7EB",
-        },
+        ticks: { display: false },
+        grid: { color: "#E5E7EB" },
         pointLabels: {
-          font: {
-            size: 14,
-          },
+          font: { size: 14 },
           color: "#374151",
         },
       },
     },
     plugins: {
-      legend: {
-        display: false,
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: (ctx) => {
+            const label = labels[ctx.dataIndex];
+            const original = values[ctx.dataIndex];
+            const isInverted = invertedSpokes[label];
+            return `${label}: ${original} (${
+              isInverted ? "Inverted" : "Normal"
+            })`;
+          },
+        },
       },
     },
     responsive: true,
     maintainAspectRatio: false,
   };
 
+  const clickPlugin = useMemo(
+    () => createLabelClickPlugin(labels, invertedSpokes, toggleInversion),
+    [labels, invertedSpokes, toggleInversion]
+  );
+
   if (!values.length) return null;
 
   return (
     <div className="w-full p-4 my-8">
-      <div className="flex justify-end mb-4">
-        <button
-          onClick={() => setShowInverted((prev) => !prev)}
-          className="px-4 py-2 text-sm font-medium rounded bg-blue-600 text-white hover:bg-blue-700 transition"
-        >
-          {showInverted ? "Show Original Axis" : "Invert Axis"}
-        </button>
-      </div>
-
-      <div className="h-[400px] sm:h-[500px] md:h-[600px]">
-        <Radar data={chartData} options={chartOptions} />
+      {/* <button onClick={() => setForceRerender((r) => !r)}>Rerender</button> */}
+      <div className="h-[400px] sm:h-[500px] md:h-[600px] relative">
+        <Radar
+          // key={forceRerender ? "on" : "off"}
+          ref={chartRef}
+          data={chartData}
+          options={chartOptions}
+          plugins={[clickPlugin]}
+        />
       </div>
     </div>
   );

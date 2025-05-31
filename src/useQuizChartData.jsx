@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 
 /**
  * FUNCTION: useQuizChartData
@@ -23,6 +23,7 @@ import { useState, useEffect } from "react";
 export function useQuizChartData(data) {
   const [labels, setLabels] = useState([]);
   const [values, setValues] = useState([]);
+  const [politicianValues, setPoliticianValues] = useState([]);
   const [invertedSpokes, setInvertedSpokes] = useState({});
 
   useEffect(() => {
@@ -31,15 +32,18 @@ export function useQuizChartData(data) {
 
     const newLabels = [];
     const newValues = [];
+    const newPolValues = [];
 
     Object.entries(savedAnswers).forEach(([topic, stanceNum]) => {
       const short = data?.[topic]?.shortTitle || topic;
       newLabels.push(short);
       newValues.push(parseInt(stanceNum));
+      newPolValues.push(Math.floor(Math.random() * 10) + 1);
     });
 
     setLabels(newLabels);
     setValues(newValues);
+    setPoliticianValues(newPolValues);
 
     setInvertedSpokes((prev) => {
       const newMap = {};
@@ -57,9 +61,21 @@ export function useQuizChartData(data) {
     }));
   };
 
-  const adjustedValues = values.map((val, i) =>
+  const adjustedValues = useMemo(() => {
+    return values.map((val, i) => (invertedSpokes[labels[i]] ? 11 - val : val));
+  }, [values, labels, invertedSpokes]);
+
+  const adjustedPoliticianValues = politicianValues.map((val, i) =>
     invertedSpokes[labels[i]] ? 11 - val : val
   );
 
-  return { labels, values, adjustedValues, invertedSpokes, toggleInversion };
+  return {
+    labels,
+    values,
+    adjustedValues,
+    politicianValues,
+    adjustedPoliticianValues,
+    invertedSpokes,
+    toggleInversion,
+  };
 }

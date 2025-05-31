@@ -46,19 +46,34 @@ export function SpiderGraph({ data }) {
   const chartRef = useRef(null);
   // const [forceRerender, setForceRerender] = useState(false);
 
-  const { labels, values, adjustedValues, invertedSpokes, toggleInversion } =
-    useQuizChartData(data);
+  const {
+    labels,
+    values,
+    politicianValues,
+    adjustedValues,
+    adjustedPoliticianValues,
+    invertedSpokes,
+    toggleInversion,
+  } = useQuizChartData(data);
 
   const chartData = {
     labels,
     datasets: [
       {
-        label: "Your Stance",
+        label: "Your Values",
         data: adjustedValues,
         backgroundColor: "rgba(59, 130, 246, 0.2)",
         borderColor: "rgba(59, 130, 246, 1)",
         borderWidth: 2,
         pointBackgroundColor: "rgba(59, 130, 246, 1)",
+      },
+      {
+        label: "Politician Values",
+        data: adjustedPoliticianValues,
+        backgroundColor: "rgba(87, 32, 13, 0.2)",
+        borderColor: "rgba(87, 32, 13, 1)",
+        borderWidth: 2,
+        pointBackgroundColor: "rgba(87, 32, 13, 1)",
       },
     ],
   };
@@ -76,16 +91,29 @@ export function SpiderGraph({ data }) {
       },
     },
     plugins: {
-      legend: { display: false },
+      legend: { display: true },
       tooltip: {
         callbacks: {
           label: (ctx) => {
             const label = labels[ctx.dataIndex];
-            const original = values[ctx.dataIndex];
+            const datasetIndex = ctx.datasetIndex;
             const isInverted = invertedSpokes[label];
-            return `${label}: ${original} (${
-              isInverted ? "Inverted" : "Normal"
-            })`;
+
+            if (datasetIndex === 0) {
+              // Your Values
+              const original = values[ctx.dataIndex];
+              return `${label}: ${original} (${
+                isInverted ? "Inverted" : "Normal"
+              })`;
+            } else if (datasetIndex === 1) {
+              // Politician's Values
+              const original = politicianValues[ctx.dataIndex];
+              return `${label}: ${original} (${
+                isInverted ? "Inverted" : "Normal"
+              })`;
+            }
+
+            return `${label}: ${ctx.raw}`;
           },
         },
       },
